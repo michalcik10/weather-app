@@ -6,6 +6,16 @@ Podla toho ci vypracovavate toto zadanie na pohovore, alebo doma, vypracujte tod
 
 Depending on whether you are working on this task during an interview or at home, complete todo-on-site.md or todo-home.md.
 
+## Setup
+
+The OpenWeatherMap API key is read from an environment variable. Copy `.env.example` to `.env.local` and fill in your key:
+
+```
+REACT_APP_OPENWEATHER_API_KEY=your_api_key_here
+```
+
+Restart `npm start` after changing `.env.local`.
+
 
 ## Available Scripts
 

@@ -1,48 +1,66 @@
-import React, { FunctionComponent, useEffect } from 'react';
-import { useState } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import axios from 'axios';
 import { InfinitySpin } from 'react-loader-spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFrown } from '@fortawesome/free-solid-svg-icons';
 import { WeatherResponse } from '../types/WeatherResponse';
+import { CityWeatherProps } from '../types/CityWeather';
 import { CityWeather } from './CityWeather';
-import { toDate } from './tools';
+import { parseCities, toCityWeather } from './tools';
+
+const API_URL = 'https://api.openweathermap.org/data/2.5/weather';
+const APP_ID = process.env.REACT_APP_OPENWEATHER_API_KEY;
+
+type WeatherState = {
+  loading: boolean;
+  cities: CityWeatherProps[];
+  notFound: string[];
+};
 
 const Weather: FunctionComponent = () => {
   const [query, setQuery] = useState('');
-  const [weather, setWeather] = useState<{ loading: Boolean, data?: WeatherResponse, error: Boolean }>({
+  const [weather, setWeather] = useState<WeatherState>({
     loading: false,
-    data: undefined,
-    error: false,
+    cities: [],
+    notFound: [],
   });
 
-
-
-  const search = (event: any) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      setQuery('');
-      setWeather({ ...weather, loading: true });
-      const url = 'https://api.openweathermap.org/data/2.5/weather';
-      const appid = 'f00c38e0279b7bc85480c3fe775d518c';
-      //console.log('Enter');
-      const params = {
-        q: query,
-        units: 'metric',
-        appid: appid
-      }
-
-      axios.get(url, { params })
-        .then((res) => {
-          console.log('res', res);
-          setWeather({ data: res.data, loading: false, error: false });
-        }).catch((error) => {
-          setWeather({ ...weather, data: undefined, error: true });
-          setQuery('');
-          console.log('error', error);
-
-        });
+  const search = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') {
+      return;
     }
+    event.preventDefault();
+
+    const names = parseCities(query);
+    if (names.length === 0) {
+      return;
+    }
+
+    setQuery('');
+    setWeather((prev) => ({ ...prev, loading: true }));
+
+    // allSettled: one unknown city must not break the results for the others
+    const results = await Promise.allSettled(
+      names.map((q) =>
+        axios.get<WeatherResponse>(API_URL, { params: { q, units: 'metric', appid: APP_ID } })
+      )
+    );
+
+    const cities: CityWeatherProps[] = [];
+    const notFound: string[] = [];
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        const city = toCityWeather(result.value.data);
+        // e.g. "Praha, Prague" returns the same city twice
+        if (!cities.some((c) => c.name === city.name && c.country === city.country)) {
+          cities.push(city);
+        }
+      } else {
+        notFound.push(names[index]);
+      }
+    });
+
+    setWeather({ loading: false, cities, notFound });
   };
 
   return (
@@ -54,7 +72,7 @@ const Weather: FunctionComponent = () => {
         <input
           type="text"
           className="city-search"
-          placeholder="Search City.."
+          placeholder="Search City.. (Bratislava, Kosice)"
           name="query"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -66,47 +84,27 @@ const Weather: FunctionComponent = () => {
         <>
           <br />
           <br />
-          <InfinitySpin width='100px' />
+          <InfinitySpin width="200" />
         </>
       )}
-      {weather.error && (
+
+      {!weather.loading && weather.notFound.length > 0 && (
         <>
           <br />
           <br />
           <span className="error-message">
             <FontAwesomeIcon icon={faFrown} />
-            <span style={{ fontSize: '20px' }}> Sorry, City not found</span>
+            <span style={{ fontSize: '20px' }}> Sorry, City not found: {weather.notFound.join(', ')}</span>
           </span>
         </>
       )}
 
-      {weather && weather.data && weather.data.main && (
-        <div>
-          <div className="city-name">
-            <h2>
-              {weather.data.name}, <span>{weather.data.sys.country}</span>
-            </h2>
-          </div>
-          <div className="date">
-            <span>{toDate()}</span>
-          </div>
-          <div className="icon-temp">
-            <img
-              className=""
-              src={`https://openweathermap.org/img/wn/${weather.data.weather[0].icon}@2x.png`}
-              alt={weather.data.weather[0].description}
-            />
-            {Math.round(weather.data.main.temp)}
-            <sup className="deg">&deg;C</sup>
-          </div>
-          <div className="des-wind">
-            <p>{weather.data.weather[0].description.toUpperCase()}</p>
-            <p>Wind Speed: {weather.data.wind.speed}m/s</p>
-          </div>
-        </div>
-      )}
+      {!weather.loading &&
+        weather.cities.map((city) => (
+          <CityWeather key={`${city.name}-${city.country}`} {...city} />
+        ))}
     </div>
   );
-}
+};
 
 export default Weather;
