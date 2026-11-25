@@ -2,7 +2,7 @@ import axios from 'axios';
 import { WeatherResponse } from '../types/WeatherResponse';
 import { GeoLocation } from '../types/GeoLocation';
 import { CityWeatherProps } from '../types/CityWeather';
-import { toDate } from '../components/tools';
+import { toDate } from '../utils/tools';
 
 const GEO_URL = 'https://api.openweathermap.org/geo/1.0/direct';
 const WEATHER_URL = 'https://api.openweathermap.org/data/2.5/weather';

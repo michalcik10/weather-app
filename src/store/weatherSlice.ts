@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { AppThunk, RootState } from './index';
 import { CityWeatherProps } from '../types/CityWeather';
 import { fetchCityWeather, hasApiKey } from '../services/weatherApi';
-import { parseCities } from '../components/tools';
+import { parseCities } from '../utils/tools';
 
 export type WeatherState = {
   query: string;
