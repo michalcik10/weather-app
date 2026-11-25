@@ -6,6 +6,31 @@ Podla toho ci vypracovavate toto zadanie na pohovore, alebo doma, vypracujte tod
 
 Depending on whether you are working on this task during an interview or at home, complete todo-on-site.md or todo-home.md.
 
+## Setup
+
+The OpenWeatherMap API key is read from an environment variable. Copy `.env.example` to `.env.local` and fill in your key:
+
+```
+REACT_APP_OPENWEATHER_API_KEY=your_api_key_here
+```
+
+Restart `npm start` after changing `.env.local`.
+
+## Solution (home variant)
+
+- **Multiple cities** – the input is split by comma (trimmed, empty and duplicate entries skipped).
+  All cities are fetched in parallel with `Promise.allSettled`, so an unknown city does not break the others
+  and is listed in the "City not found" message.
+- **CityWeather** – a pure presentational component, it gets only the data it needs via props.
+- **Redux Toolkit** – state and logic moved out of components:
+  - `src/services/weatherApi.ts` – API call and mapping of the response
+  - `src/store/weatherSlice.ts` – state, reducers, `fetchWeather` thunk, selectors
+  - `Weather` has no local state and no API calls, it only reads from the store and dispatches actions
+- City names come from the OpenWeatherMap Geocoding API (e.g. "Košice" instead of "Kosice"),
+  the weather is then loaded by coordinates. This means two requests per city.
+- A response from an older search is ignored, so it cannot overwrite the results of a newer one.
+- Tests: `npm test` (input parsing, reducer, app render).
+
 
 ## Available Scripts
 

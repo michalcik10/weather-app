@@ -1,4 +1,20 @@
-export const toDate = () => {
+// "Bratislava, kosice,, Bratislava " -> ['Bratislava', 'kosice']
+export const parseCities = (query: string): string[] => {
+  const seen = new Set<string>();
+  return query
+    .split(',')
+    .map((city) => city.trim())
+    .filter((city) => {
+      const key = city.toLowerCase();
+      if (!city || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+};
+
+export const toDate = (currentDate: Date = new Date()) => {
   // let date = new Date();
   // const today = date.toDateString();
   // return today;
@@ -13,7 +29,7 @@ export const toDate = () => {
     'August',
     'September',
     'October',
-    'Nocvember',
+    'November',
     'December',
   ];
   const days = [
@@ -25,7 +41,6 @@ export const toDate = () => {
     'Friday',
     'Saturday',
   ];
-  const currentDate = new Date();
   const date = `${days[currentDate.getDay()]} ${currentDate.getDate()} ${months[currentDate.getMonth()]
     }`;
   return date;
