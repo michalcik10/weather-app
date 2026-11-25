@@ -9,6 +9,8 @@ export type WeatherState = {
   cities: CityWeatherProps[];
   notFound: string[];
   loading: boolean;
+  // id of the latest search, older responses are ignored
+  requestId?: string;
 };
 
 const initialState: WeatherState = {
@@ -49,16 +51,24 @@ const weatherSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchWeather.pending, (state) => {
+      .addCase(fetchWeather.pending, (state, action) => {
         state.loading = true;
         state.query = '';
+        state.requestId = action.meta.requestId;
       })
       .addCase(fetchWeather.fulfilled, (state, action) => {
+        // a slower older search must not overwrite the results of a newer one
+        if (action.meta.requestId !== state.requestId) {
+          return;
+        }
         state.loading = false;
         state.cities = action.payload.cities;
         state.notFound = action.payload.notFound;
       })
-      .addCase(fetchWeather.rejected, (state) => {
+      .addCase(fetchWeather.rejected, (state, action) => {
+        if (action.meta.requestId !== state.requestId) {
+          return;
+        }
         state.loading = false;
       });
   },
