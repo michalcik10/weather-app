@@ -20,12 +20,16 @@ export const toCityWeather = (data: WeatherResponse, location: GeoLocation): Cit
   temp: data.main.temp,
 });
 
-export const fetchCityWeather = async (city: string): Promise<CityWeatherProps> => {
+export const hasApiKey = (): boolean => Boolean(APP_ID);
+
+// Returns null when the city does not exist.
+// Throws for other problems (invalid API key, network error, rate limit...).
+export const fetchCityWeather = async (city: string): Promise<CityWeatherProps | null> => {
   const { data: locations } = await axios.get<GeoLocation[]>(GEO_URL, {
     params: { q: city, limit: 1, appid: APP_ID },
   });
   if (locations.length === 0) {
-    throw new Error(`City not found: ${city}`);
+    return null;
   }
 
   const location = locations[0];

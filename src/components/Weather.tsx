@@ -6,6 +6,8 @@ import { CityWeather } from './CityWeather';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   selectCities,
+  selectError,
+  selectFailed,
   selectLoading,
   selectNotFound,
   selectQuery,
@@ -13,12 +15,25 @@ import {
   submitSearch,
 } from '../store/weatherSlice';
 
+const ErrorMessage: FunctionComponent<{ text: string }> = ({ text }) => (
+  <>
+    <br />
+    <br />
+    <span className="error-message">
+      <FontAwesomeIcon icon={faFrown} />
+      <span style={{ fontSize: '20px' }}> {text}</span>
+    </span>
+  </>
+);
+
 // No local state and no API calls: data comes from the store, user actions are dispatched.
 const Weather: FunctionComponent = () => {
   const dispatch = useAppDispatch();
   const query = useAppSelector(selectQuery);
   const cities = useAppSelector(selectCities);
   const notFound = useAppSelector(selectNotFound);
+  const failed = useAppSelector(selectFailed);
+  const error = useAppSelector(selectError);
   const loading = useAppSelector(selectLoading);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -53,21 +68,18 @@ const Weather: FunctionComponent = () => {
         </>
       )}
 
-      {!loading && notFound.length > 0 && (
+      {!loading && (
         <>
-          <br />
-          <br />
-          <span className="error-message">
-            <FontAwesomeIcon icon={faFrown} />
-            <span style={{ fontSize: '20px' }}> Sorry, City not found: {notFound.join(', ')}</span>
-          </span>
+          {error && <ErrorMessage text={error} />}
+          {notFound.length > 0 && <ErrorMessage text={`Sorry, City not found: ${notFound.join(', ')}`} />}
+          {failed.length > 0 && (
+            <ErrorMessage text={`Could not load weather for: ${failed.join(', ')}. Please try again.`} />
+          )}
+          {cities.map((city) => (
+            <CityWeather key={`${city.name}-${city.country}`} {...city} />
+          ))}
         </>
       )}
-
-      {!loading &&
-        cities.map((city) => (
-          <CityWeather key={`${city.name}-${city.country}`} {...city} />
-        ))}
     </div>
   );
 };
