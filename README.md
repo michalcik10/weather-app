@@ -26,6 +26,8 @@ Restart `npm start` after changing `.env.local`.
   - `src/services/weatherApi.ts` – API call and mapping of the response
   - `src/store/weatherSlice.ts` – state, reducers, `fetchWeather` thunk, selectors
   - `Weather` has no local state and no API calls, it only reads from the store and dispatches actions
+- City names come from the OpenWeatherMap Geocoding API (e.g. "Košice" instead of "Kosice"),
+  the weather is then loaded by coordinates. This means two requests per city.
 - A response from an older search is ignored, so it cannot overwrite the results of a newer one.
 - Tests: `npm test` (input parsing, reducer, app render).
 
