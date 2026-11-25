@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react';
-import { toDate } from './tools';
 import { CityWeatherProps } from '../types/CityWeather';
 
-export const CityWeather: FunctionComponent<CityWeatherProps> = ({ name, country, description, icon, windSpeed, temp }) => (
+// Pure presentational component: renders only what it gets in props.
+export const CityWeather: FunctionComponent<CityWeatherProps> = ({ name, country, date, description, icon, windSpeed, temp }) => (
   <div className="city-weather">
     <div className="city-name">
       <h2>
@@ -10,7 +10,7 @@ export const CityWeather: FunctionComponent<CityWeatherProps> = ({ name, country
       </h2>
     </div>
     <div className="date">
-      <span>{toDate()}</span>
+      <span>{date}</span>
     </div>
     <div className="icon-temp">
       <img
